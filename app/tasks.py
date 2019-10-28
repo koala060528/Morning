@@ -32,6 +32,14 @@ def schedule():  # 默认间隔设置为7200秒
 
 
 def post():
+    # 时间锁，防止定时任务重复运行（限制一分钟以内只能运行一次）
+    c_time = datetime.now().strftime('%Y%m%d%H%M')
+    post_flag = redis.get('post_flag')
+    if post_flag is not None and post_flag.decode() == c_time:
+        return
+    else:
+        redis.set('post_flag', c_time)
+
     asyncio.set_event_loop(asyncio.new_event_loop())
     loop = asyncio.get_event_loop()
     tasks = list()
