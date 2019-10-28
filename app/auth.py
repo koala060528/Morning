@@ -38,6 +38,7 @@ def auth():
         with open(file_path, 'wb') as f:
             f.write(str(datetime.now()).encode())
             f.write(rec)
+        return ''
 
 
 @app.route('/test', methods=['GET'])

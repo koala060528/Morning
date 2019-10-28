@@ -1,7 +1,6 @@
 import requests, json
 from apscheduler.schedulers.background import BackgroundScheduler
 from config import Config
-from app import redis
 import asyncio, aiohttp
 from datetime import datetime
 from app import redis
@@ -26,7 +25,7 @@ def get_access_token():
 
 def schedule():  # 默认间隔设置为7200秒
     get_access_token()
-    scheduler = BackgroundScheduler()
+    scheduler = BackgroundScheduler(timezone="Asia/Shanghai")
     scheduler.add_job(get_access_token, 'interval', seconds=7200)
     scheduler.add_job(post, 'cron', hour=8, minute=0)
     scheduler.start()
@@ -123,6 +122,7 @@ def post():
         }
     }
     response = requests.post(Config.POST_URL.format(redis.get('access_token').decode()), data=json.dumps(her_template))
+    print(response.text)
 
     # 给自己发消息
     weather = res['my_weather']['HeWeather6'][0]['now']
@@ -175,6 +175,7 @@ def post():
     }
 
     response = requests.post(Config.POST_URL.format(redis.get('access_token').decode()), data=json.dumps(my_template))
+    print(response.text)
 
 
 if __name__ == '__main__':
