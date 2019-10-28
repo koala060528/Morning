@@ -28,7 +28,7 @@ def schedule():  # 默认间隔设置为7200秒
     get_access_token()
     scheduler = BackgroundScheduler()
     scheduler.add_job(get_access_token, 'interval', seconds=7200)
-    scheduler.add_job(post, 'cron', hour=8, minute=00)
+    scheduler.add_job(post, 'cron', hour=8, minute=0)
     scheduler.start()
 
 
@@ -73,7 +73,7 @@ def post():
     forecast = res['her_forecast']['HeWeather6'][0]['daily_forecast'][0]
     air = res['her_air']['HeWeather6'][0]['air_now_city']
     lifestyle = res['her_life']['HeWeather6'][0]['lifestyle']
-    w_description = '当前天气{0},{1}摄氏度,风向{2},风力{3}级,今日天气{4},{5}~{6}摄氏度,降雨概率{7}%'.format(weather['cond_txt'],
+    w_description = '当前天气{0}，{1}摄氏度，风向{2}，风力{3}级，今日天气{4}，{5}~{6}摄氏度，降雨概率{7}%'.format(weather['cond_txt'],
                                                                                      weather['tmp'],
                                                                                      weather['wind_dir'],
                                                                                      weather['wind_sc'],
@@ -81,7 +81,7 @@ def post():
                                                                                      forecast['tmp_min'],
                                                                                      forecast['tmp_max'],
                                                                                      forecast['pop'])
-    a_description = '空气质量{0},空气质量指数{1},pm2.5指数{2},pm10指数{3},主要污染物{4}'.format(air['qlty'],
+    a_description = '空气质量{0}，空气质量指数{1}，pm2.5指数{2}，pm10指数{3}，主要污染物{4}'.format(air['qlty'],
                                                                              air['aqi'],
                                                                              air['pm25'],
                                                                              air['pm10'],
@@ -102,19 +102,19 @@ def post():
             },
             'weather': {
                 'value': w_description,
-                'color': '#173177'
+                'color': '#000000'
             },
             'air': {
                 'value': a_description,
-                'color': '#173177'
+                'color': '#000000'
             },
             'lifestyle': {
                 'value': l_description,
-                'color': '#173177'
+                'color': '#000000'
             },
             'next': {
                 'value': ('还有' + str(e_days) + '天') if e_days >= 0 else '还有0天',
-                'color': '#173177'
+                'color': '#000000'
             },
             'remark': {
                 'value': yy,
@@ -122,14 +122,14 @@ def post():
             }
         }
     }
-    response = requests.post(Config.POST_URL.format(redis.get('access_token')), data=json.dumps(her_template))
+    response = requests.post(Config.POST_URL.format(redis.get('access_token').decode()), data=json.dumps(her_template))
 
     # 给自己发消息
     weather = res['my_weather']['HeWeather6'][0]['now']
     forecast = res['my_forecast']['HeWeather6'][0]['daily_forecast'][0]
     air = res['my_air']['HeWeather6'][0]['air_now_city']
     lifestyle = res['my_life']['HeWeather6'][0]['lifestyle']
-    w_description = '当前天气{0},{1}摄氏度,风向{2},风力{3}级,今日天气{4},{5}~{6}摄氏度,降雨概率{7}%'.format(weather['cond_txt'],
+    w_description = '当前天气{0}，{1}摄氏度，风向{2}，风力{3}级，今日天气{4}，{5}~{6}摄氏度，降雨概率{7}%'.format(weather['cond_txt'],
                                                                                      weather['tmp'],
                                                                                      weather['wind_dir'],
                                                                                      weather['wind_sc'],
@@ -137,7 +137,7 @@ def post():
                                                                                      forecast['tmp_min'],
                                                                                      forecast['tmp_max'],
                                                                                      forecast['pop'])
-    a_description = '空气质量{0},空气质量指数{1},pm2.5指数{2},pm10指数{3},主要污染物{4}'.format(air['qlty'],
+    a_description = '空气质量{0}，空气质量指数{1}，pm2.5指数{2}，pm10指数{3}，主要污染物{4}'.format(air['qlty'],
                                                                              air['aqi'],
                                                                              air['pm25'],
                                                                              air['pm10'],
@@ -148,24 +148,24 @@ def post():
         'template_id': Config.TEMPLATE,
         'data': {
             'first': {
-                'value': '早安,这是和宝宝在一起的第{0}天！'.format(a_days),
+                'value': '早安，这是和宝宝在一起的第{0}天！'.format(a_days),
                 'color': '#173177'
             },
             'weather': {
                 'value': w_description,
-                'color': '#173177'
+                'color': '#000000'
             },
             'air': {
                 'value': a_description,
-                'color': '#173177'
+                'color': '#000000'
             },
             'lifestyle': {
                 'value': l_description,
-                'color': '#173177'
+                'color': '#000000'
             },
             'next': {
                 'value': ('还有' + str(e_days) + '天') if e_days >= 0 else '还有0天',
-                'color': '#173177'
+                'color': '#000000'
             },
             'remark': {
                 'value': yy,
@@ -174,7 +174,7 @@ def post():
         }
     }
 
-    response = requests.post(Config.POST_URL.format(redis.get('access_token')), data=json.dumps(my_template))
+    response = requests.post(Config.POST_URL.format(redis.get('access_token').decode()), data=json.dumps(my_template))
 
 
 if __name__ == '__main__':
