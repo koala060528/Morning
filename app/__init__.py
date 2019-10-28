@@ -9,4 +9,4 @@ redis = Redis.from_url(Config.REDIS_URL)
 
 from app import auth, tasks
 
-tasks.schedule(7200)
+tasks.schedule()

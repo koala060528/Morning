@@ -2,6 +2,8 @@ from app import app
 from flask import request
 import hashlib
 from config import Config
+import os
+from datetime import datetime
 
 
 @app.route('/handle', methods=['GET', 'POST'])
@@ -26,3 +28,13 @@ def auth():
             return echostr
         else:
             return ""
+    elif request.method == 'POST':
+        print('post request')
+        rec = request.stream.read()
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'log')
+        if not os.path.exists(path):
+            os.mkdir(path)
+        file_path = os.path.join(path, 'requestRecord.txt')
+        with open(file_path, 'wb') as f:
+            f.write(str(datetime.now()).encode())
+            f.write(rec)
