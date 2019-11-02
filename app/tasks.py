@@ -195,11 +195,6 @@ def post():
         }
     }
 
-    # response2 = requests.post(Config.POST_URL.format(redis.get('access_token').decode()), data=json.dumps(my_template))
-    # response1 = requests.post(Config.POST_URL.format(redis.get('access_token').decode()), data=json.dumps(her_template))
-    # print(response1.text)
-    # print(response2.text)
-
     tasks.clear()
     res.clear()
     tasks.append(
@@ -210,14 +205,6 @@ def post():
                             json.dumps(my_template)))
 
     loop.run_until_complete(asyncio.wait(tasks))
-
-    for key, value in res.items():
-        res[key] = json.loads(value)
-
-    if res['her']['errcode'] == 0 and res['my']['errcode'] == 0:
-        return True
-    else:
-        return False
 
 
 if __name__ == '__main__':

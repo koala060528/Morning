@@ -5,7 +5,6 @@ from config import Config
 import os
 from datetime import datetime
 from app.tasks import post
-import json
 import xml.etree.ElementTree as ET
 
 
@@ -42,7 +41,11 @@ def auth():
         toUser = xml_rec.find('ToUserName').text
         fromUser = xml_rec.find('FromUserName').text
         messageType = xml_rec.find('MsgType').text
-        content = xml_rec.find('Content').text
+        try:
+            content = xml_rec.find('Content').text
+        except Exception as e:
+            content = ''
+
         with open(file_path, 'a+', encoding='utf-8') as f:
             f.writelines(str(datetime.now()))
             f.writelines('\n')
@@ -53,12 +56,12 @@ def auth():
         xml_ret = '<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[' \
                   '%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![' \
                   'CDATA[%s]]></Content></xml> '
+        if content is None:
+            return ''
+
         if fromUser == Config.MY_OPENID and content == '早安':
-            res = post()
-            if res:
-                content = '成功'
-            else:
-                content = '失败'
+            post()
+            content = '成功'
         xml_ret = xml_ret % (fromUser, toUser, datetime.now(), content)
         return xml_ret
 
