@@ -4,6 +4,9 @@ import hashlib
 from config import Config
 import os
 from datetime import datetime
+from app.tasks import post
+import json
+import xml.etree.ElementTree as ET
 
 
 @app.route('/handle', methods=['GET', 'POST'])
@@ -35,12 +38,31 @@ def auth():
         if not os.path.exists(path):
             os.mkdir(path)
         file_path = os.path.join(path, 'requestRecord.txt')
-        with open(file_path, 'wb') as f:
-            f.write(str(datetime.now()).encode())
-            f.write(rec)
-        return ''
+        xml_rec = ET.fromstring(rec)
+        toUser = xml_rec.find('ToUserName').text
+        fromUser = xml_rec.find('FromUserName').text
+        messageType = xml_rec.find('MsgType').text
+        content = xml_rec.find('Content').text
+        with open(file_path, 'a+', encoding='utf-8') as f:
+            f.writelines(str(datetime.now()))
+            f.writelines('\n')
+            f.writelines(rec.decode())
+            f.writelines('\n')
+            f.writelines('\n')
+
+        xml_ret = '<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[' \
+                  '%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![' \
+                  'CDATA[%s]]></Content></xml> '
+        if fromUser == Config.MY_OPENID and content == '早安':
+            res = post()
+            if res:
+                content = '成功'
+            else:
+                content = '失败'
+        xml_ret = xml_ret % (fromUser, toUser, datetime.now(), content)
+        return xml_ret
 
 
 @app.route('/test', methods=['GET'])
 def test():
-    return 'ok'
+    return str(datetime.now())

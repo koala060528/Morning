@@ -3,14 +3,23 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from config import Config
 import asyncio, aiohttp
 from datetime import datetime
-from app import redis
+from redis import Redis
+
+redis = Redis.from_url(Config.REDIS_URL)
 
 
 async def async_get_response(key, url, res):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as resp:
             assert resp.status == 200
-            res[key] = await resp.json()
+            res[key] = await resp.text()
+
+
+async def async_post_response(key, url, res, data):
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, data=data) as resp:
+            assert resp.status == 200
+            res[key] = await resp.text()
 
 
 def get_access_token():
@@ -27,7 +36,7 @@ def schedule():  # 默认间隔设置为7200秒
     get_access_token()
     scheduler = BackgroundScheduler(timezone="Asia/Shanghai")
     scheduler.add_job(get_access_token, 'interval', seconds=7200)
-    scheduler.add_job(post, 'cron', hour=8, minute=0)
+    scheduler.add_job(post, 'cron', hour=7, minute=50)
     scheduler.start()
 
 
@@ -70,10 +79,16 @@ def post():
     tasks.append(async_get_response(key='my_air',
                                     url=Config.WEATHER_URL.format('air', 'now', 'location=' + Config.MY_LOCATION),
                                     res=res))
-    # 每日一言
-    yy = requests.get(Config.DAILY_YY).text
+    tasks.append(async_get_response(key='yy', url=Config.DAILY_YY, res=res))
 
     loop.run_until_complete(asyncio.wait(tasks))
+
+    yy = res['yy']
+
+    res.pop('yy')
+
+    for key, value in res.items():
+        res[key] = json.loads(value)
 
     # 给女朋友发消息
     weather = res['her_weather']['HeWeather6'][0]['now']
@@ -129,8 +144,6 @@ def post():
             }
         }
     }
-    response = requests.post(Config.POST_URL.format(redis.get('access_token').decode()), data=json.dumps(her_template))
-    print(response.text)
 
     # 给自己发消息
     weather = res['my_weather']['HeWeather6'][0]['now']
@@ -182,9 +195,30 @@ def post():
         }
     }
 
-    response = requests.post(Config.POST_URL.format(redis.get('access_token').decode()), data=json.dumps(my_template))
-    print(response.text)
+    # response2 = requests.post(Config.POST_URL.format(redis.get('access_token').decode()), data=json.dumps(my_template))
+    # response1 = requests.post(Config.POST_URL.format(redis.get('access_token').decode()), data=json.dumps(her_template))
+    # print(response1.text)
+    # print(response2.text)
+
+    tasks.clear()
+    res.clear()
+    tasks.append(
+        async_post_response('her', Config.POST_URL.format(redis.get('access_token').decode()), res,
+                            json.dumps(her_template)))
+    tasks.append(
+        async_post_response('my', Config.POST_URL.format(redis.get('access_token').decode()), res,
+                            json.dumps(my_template)))
+
+    loop.run_until_complete(asyncio.wait(tasks))
+
+    for key, value in res.items():
+        res[key] = json.loads(value)
+
+    if res['her']['errcode'] == 0 and res['my']['errcode'] == 0:
+        return True
+    else:
+        return False
 
 
 if __name__ == '__main__':
-    post()
+    print(post())
