@@ -59,7 +59,7 @@ def auth():
         if content is None:
             return ''
 
-        if fromUser == Config.MY_OPENID and content == '早安':
+        if (fromUser == Config.MY_OPENID or fromUser == Config.HER_OPENID) and content == '早安':
             post()
             content = '成功'
         xml_ret = xml_ret % (fromUser, toUser, datetime.now(), content)
