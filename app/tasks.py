@@ -112,7 +112,7 @@ def post():
     a_time = datetime.strptime(Config.ANNIVERSARY, '%Y-%m-%d')
     e_time = datetime.strptime(Config.EXPECTED_DAY, '%Y-%m-%d')
     a_days = (datetime.now() - a_time).days
-    e_days = (e_time - datetime.now()).days
+    e_days = (e_time - datetime.now()).days + 1
 
     her_template = {
         'touser': Config.HER_OPENID,
@@ -135,7 +135,7 @@ def post():
                 'color': '#000000'
             },
             'next': {
-                'value': ('还有' + str(e_days) + '天') if e_days >= 0 else '还有0天',
+                'value': ('还有' + str(e_days) + '天') if e_days >= 1 else '还有0天',
                 'color': '#000000'
             },
             'remark': {
